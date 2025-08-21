@@ -1,4 +1,6 @@
-#include <bits/stdc++.h>
+#include <iostream>
+#include <vector>
+#include <string>
 
 using namespace std;
 #define ll long long
@@ -6,7 +8,7 @@ using namespace std;
 
 using Face = vector<vector<int>>;
 
-class Rubik2x2 {
+class Cubo2x2 {
 private:
     //faces do cubo
     Face U, D, F, B, L, R;
@@ -25,16 +27,16 @@ private:
             case 0: return 'W'; //branco
             case 1: return 'Y'; //amarelo
             case 2: return 'B'; //azul
-            case 3: return 'R'; //vermelho
+            case 3: return 'O'; //laranja
             case 4: return 'G'; //verde
-            case 5: return 'O'; //laranja
+            case 5: return 'R'; //vermelho
             default: return '?'; //cor desconhecida
         }
     }
 
 public:
     //construtor: inicializa o cubo resolvido
-    Rubik2x2() {
+    Cubo2x2() {
         //inicializa as faces com cores correspondentes
         //0: Branco, 1: Amarelo, 2: Azul, 3: Vermelho, 4: Verde, 5: Laranja
 
@@ -194,10 +196,10 @@ public:
 };
 
 int main() {
-    Rubik2x2 myCube;
+    Cubo2x2 cubo;
     
     cout << "Cubo inicial (resolvido):" << endl;
-    myCube.printCube();
+    cubo.printCube();
 
     ll movimento=0;
 
@@ -213,108 +215,108 @@ int main() {
         switch (movimento)
         {
         case 1:
-            myCube.moveU();
-            myCube.printCube();
-            if (myCube.estaResolvido()) {
+            cubo.moveU();
+            cubo.printCube();
+            if (cubo.estaResolvido()) {
                 cout << "\nCUBO RESOLVIDO" << endl;
             }else {
                 cout << "\nCUBO NAO RESOLVIDO" << endl;
             }
             break;
         case 2:
-            myCube.moveD();
-            myCube.printCube();
-            if (myCube.estaResolvido()) {
+            cubo.moveD();
+            cubo.printCube();
+            if (cubo.estaResolvido()) {
                 cout << "\nCUBO RESOLVIDO" << endl;
             }else {
                 cout << "\nCUBO NAO RESOLVIDO" << endl;
             }
             break;
         case 3:
-            myCube.moveF();
-            myCube.printCube();
-            if (myCube.estaResolvido()) {
+            cubo.moveF();
+            cubo.printCube();
+            if (cubo.estaResolvido()) {
                 cout << "\nCUBO RESOLVIDO" << endl;
             }else {
                 cout << "\nCUBO NAO RESOLVIDO" << endl;
             }
             break;
         case 4:
-            myCube.moveB();
-            myCube.printCube();
-            if (myCube.estaResolvido()) {
+            cubo.moveB();
+            cubo.printCube();
+            if (cubo.estaResolvido()) {
                 cout << "\nCUBO RESOLVIDO" << endl;
             }else {
                 cout << "\nCUBO NAO RESOLVIDO" << endl;
             }
             break;
         case 5:
-            myCube.moveL();
-            myCube.printCube();
-            if (myCube.estaResolvido()) {
+            cubo.moveL();
+            cubo.printCube();
+            if (cubo.estaResolvido()) {
                 cout << "\nCUBO RESOLVIDO" << endl;
             }else {
                 cout << "\nCUBO NAO RESOLVIDO" << endl;
             }
             break;
         case 6:
-            myCube.moveR();
-            myCube.printCube();
-            if (myCube.estaResolvido()) {
+            cubo.moveR();
+            cubo.printCube();
+            if (cubo.estaResolvido()) {
                 cout << "\nCUBO RESOLVIDO" << endl;
             }else {
                 cout << "\nCUBO NAO RESOLVIDO" << endl;
             }
             break;
         case 7:
-            myCube.moveU_antihor();
-            myCube.printCube();
-            if (myCube.estaResolvido()) {
+            cubo.moveU_antihor();
+            cubo.printCube();
+            if (cubo.estaResolvido()) {
                 cout << "\nCUBO RESOLVIDO" << endl;
             }else {
                 cout << "\nCUBO NAO RESOLVIDO" << endl;
             }
             break;
         case 8:
-            myCube.moveD_antihor();
-            myCube.printCube();
-            if (myCube.estaResolvido()) {
+            cubo.moveD_antihor();
+            cubo.printCube();
+            if (cubo.estaResolvido()) {
                 cout << "\nCUBO RESOLVIDO" << endl;
             }else {
                 cout << "\nCUBO NAO RESOLVIDO" << endl;
             }
             break;
         case 9:
-            myCube.moveF_antihor();
-            myCube.printCube();
-            if (myCube.estaResolvido()) {
+            cubo.moveF_antihor();
+            cubo.printCube();
+            if (cubo.estaResolvido()) {
                 cout << "\nCUBO RESOLVIDO" << endl;
             }else {
                 cout << "\nCUBO NAO RESOLVIDO" << endl;
             }
             break;
         case 10:
-            myCube.moveB_antihor();
-            myCube.printCube();
-            if (myCube.estaResolvido()) {
+            cubo.moveB_antihor();
+            cubo.printCube();
+            if (cubo.estaResolvido()) {
                 cout << "\nCUBO RESOLVIDO" << endl;
             }else {
                 cout << "\nCUBO NAO RESOLVIDO" << endl;
             }
             break;
         case 11:
-            myCube.moveL_antihor();
-            myCube.printCube();
-            if (myCube.estaResolvido()) {
+            cubo.moveL_antihor();
+            cubo.printCube();
+            if (cubo.estaResolvido()) {
                 cout << "\nCUBO RESOLVIDO" << endl;
             }else {
                 cout << "\nCUBO NAO RESOLVIDO" << endl;
             }
             break;
         case 12:
-            myCube.moveR_antihor();
-            myCube.printCube();
-            if (myCube.estaResolvido()) {
+            cubo.moveR_antihor();
+            cubo.printCube();
+            if (cubo.estaResolvido()) {
                 cout << "\nCUBO RESOLVIDO" << endl;
             }else {
                 cout << "\nCUBO NAO RESOLVIDO" << endl;
