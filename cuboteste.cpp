@@ -38,7 +38,7 @@ public:
     //construtor: inicializa o cubo resolvido
     Cubo2x2() {
         //inicializa as faces com cores correspondentes
-        //0: Branco, 1: Amarelo, 2: Azul, 3: Vermelho, 4: Verde, 5: Laranja
+        //0: Branco, 1: Amarelo, 2: Azul, 3: Laranja, 4: Verde, 5: Vermelho
 
         //face U (branca)
         U = {{0, 0}, {0, 0}};
@@ -48,9 +48,9 @@ public:
         F = {{2, 2}, {2, 2}};
         //face B (verde)
         B = {{4, 4}, {4, 4}};
-        //face L (laranja)
+        //face L (vermelha)
         L = {{5, 5}, {5, 5}};
-        //face R (vermelha)
+        //face R (laranja)
         R = {{3, 3}, {3, 3}};
     }
 
