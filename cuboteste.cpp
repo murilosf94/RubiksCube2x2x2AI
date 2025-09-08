@@ -1,6 +1,8 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <chrono>
+#include <random>
 
 using namespace std;
 #define ll long long
@@ -193,17 +195,68 @@ public:
         }
         return true;
     }
+
+    void embaralhar() {
+        unsigned seed = chrono::high_resolution_clock::now()
+                        .time_since_epoch()
+                        .count();
+
+        mt19937 gerador(seed);
+
+        uniform_int_distribution<int> distribuicao(1, 6);
+
+        ll numMovimentos = 0;
+
+        cout << "\n---------------EMBARALHAMENTO---------------\n" << endl;
+        cout << "1- Nivel facil: 5 movimentos" << endl;
+        cout << "2- Nivel medio: 15 movimentos" << endl;
+        cout << "3- Nivel dificil: 30 movimentos" << endl;
+
+        cout << "Escolha o nivel de embaralhamento (1-3): ";
+        int nivel;
+        cin >> nivel;
+
+        switch (nivel) {
+            case 1:
+                numMovimentos = 5;
+                break;
+            case 2:
+                numMovimentos = 15;
+                break;
+            case 3:
+                numMovimentos = 30;
+                break;
+            default:
+                cout << "Nivel invalido. Usando nivel facil por padrao." << endl;
+                numMovimentos = 5;
+                break;
+        }
+        for (int i = 0; i < numMovimentos; ++i) {
+            int movembaralha = distribuicao(gerador);
+            switch (movembaralha) {
+                case 1: moveU(); break;
+                case 2: moveD(); break;
+                case 3: moveF(); break;
+                case 4: moveB(); break;
+                case 5: moveL(); break;
+                case 6: moveR(); break;
+            }
+        }
+
+        cout << "\nCubo embaralhado:" << endl;
+        printCube();
+    }
+
+    
 };
 
-int main() {
-    Cubo2x2 cubo;
-    
-    cout << "Cubo inicial (resolvido):" << endl;
-    cubo.printCube();
-
+void jogador(Cubo2x2& cubo) {
     ll movimento=0;
 
     while(movimento != -1) {
+
+        cout << "\n---------------JOGADOR---------------\n" << endl;
+        cubo.printCube();
 
         cout << "\n---------------MOVIMENTOS---------------\n" << endl;
         cout << "1-U, 2-D, 3-F, 4-B, 5-L, 6-R" << endl;
@@ -329,6 +382,54 @@ int main() {
             cout << "\nMovimento invalido!" << endl;
             break;
         }
+    }
+}
+
+int main() {
+    Cubo2x2 cubo;
+    Cubo2x2 cuboInicial; //cubo resolvido para referencia
+    cuboInicial = cubo;
+
+    cout << "Cubo inicial (resolvido):" << endl;
+    cubo.printCube();
+
+    cout << "\n Deseja embaralhar o cubo?" << endl;
+    cout << "1- Sim" << endl;
+    cout << "2- Nao" << endl;
+    int opcao;
+    cin >> opcao;
+
+    if (opcao == 1) {
+        cubo.embaralhar();
+    } else {
+        cout << "\nCubo nao embaralhado." << endl;
+    }
+    
+
+    cout << "\n Como deseja resolver o cubo??" << endl;
+    cout << "1- Jogador" << endl;
+    cout << "2- IA (BFS)" << endl;
+    cout << "3- IA (DFS)" << endl;
+    cout << "4- IA (A*)" << endl;
+    cout << "Escolha uma opcao: ";
+    int escolha;
+    cin >> escolha;
+    switch (escolha) {
+        case 1:
+            jogador(cubo);
+            break;
+        case 2:
+            cout << "Funcao BFS ainda nao implementada." << endl;
+            break;
+        case 3:
+            cout << "Funcao DFS ainda nao implementada." << endl;
+            break;
+        case 4:
+            cout << "Funcao A* ainda nao implementada." << endl;
+            break;
+        default:
+            cout << "Opcao invalida. Encerrando o programa." << endl;
+            break;
     }
 
     return 0;
