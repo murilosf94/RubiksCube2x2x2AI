@@ -3,6 +3,9 @@
 #include <string>
 #include <chrono>
 #include <random>
+#include <queue>
+#include <unordered_map>
+#include <functional>
 
 using namespace std;
 #define ll long long
@@ -12,10 +15,10 @@ using Face = vector<vector<int>>;
 
 class Cubo2x2 {
 private:
-    //faces do cubo
+    // faces do cubo
     Face U, D, F, B, L, R;
 
-    //função auxiliar para girar uma face 2x2 90 graus no sentido horário
+    // função auxiliar para girar uma face 2x2 90 graus no sentido horário
     void GirarFaceHor(Face& face) {
         int temp = face[0][0];
         face[0][0] = face[1][0];
@@ -26,56 +29,56 @@ private:
 
     char cor(int color) const {
         switch (color) {
-            case 0: return 'W'; //branco
-            case 1: return 'Y'; //amarelo
-            case 2: return 'B'; //azul
-            case 3: return 'O'; //laranja
-            case 4: return 'G'; //verde
-            case 5: return 'R'; //vermelho
-            default: return '?'; //cor desconhecida
+            case 0: return 'W'; // branco
+            case 1: return 'Y'; // amarelo
+            case 2: return 'B'; // azul
+            case 3: return 'O'; // laranja
+            case 4: return 'G'; // verde
+            case 5: return 'R'; // vermelho
+            default: return '?'; // cor desconhecida
         }
     }
 
 public:
-    //construtor: inicializa o cubo resolvido
+    // construtor: inicializa o cubo resolvido
     Cubo2x2() {
-        //inicializa as faces com cores correspondentes
-        //0: Branco, 1: Amarelo, 2: Azul, 3: Laranja, 4: Verde, 5: Vermelho
+        // inicializa as faces com cores correspondentes
+        // 0: Branco, 1: Amarelo, 2: Azul, 3: Laranja, 4: Verde, 5: Vermelho
 
-        //face U (branca)
+        // face U (branca)
         U = {{0, 0}, {0, 0}};
-        //face D (amarela)
+        // face D (amarela)
         D = {{1, 1}, {1, 1}};
-        //face F (azul)
+        // face F (azul)
         F = {{2, 2}, {2, 2}};
-        //face B (verde)
+        // face B (verde)
         B = {{4, 4}, {4, 4}};
-        //face L (vermelha)
+        // face L (vermelha)
         L = {{5, 5}, {5, 5}};
-        //face R (laranja)
+        // face R (laranja)
         R = {{3, 3}, {3, 3}};
     }
 
-    //função para imprimir o estado atual do cubo
+    // função para imprimir o estado atual do cubo
     void printCube() const {
-        //exibição da face U
+        // exibição da face U
         cout << "    " << cor(U[0][0]) << " " << cor(U[0][1]) << endl;
         cout << "    " << cor(U[1][0]) << " " << cor(U[1][1]) << endl;
 
-        //exibição das faces L, F, R, B na mesma linha
+        // exibição das faces L, F, R, B na mesma linha
         for (int i = 0; i < 2; ++i) {
             cout << cor(L[i][0]) << " " << cor(L[i][1]) << " "
-                      << cor(F[i][0]) << " " << cor(F[i][1]) << " "
-                      << cor(R[i][0]) << " " << cor(R[i][1]) << " "
-                      << cor(B[i][0]) << " " << cor(B[i][1]) << endl;
+                 << cor(F[i][0]) << " " << cor(F[i][1]) << " "
+                 << cor(R[i][0]) << " " << cor(R[i][1]) << " "
+                 << cor(B[i][0]) << " " << cor(B[i][1]) << endl;
         }
 
-        //exibição da face D
+        // exibição da face D
         cout << "    " << cor(D[0][0]) << " " << cor(D[0][1]) << endl;
         cout << "    " << cor(D[1][0]) << " " << cor(D[1][1]) << endl;
     }
     
-    //movimento U
+    // movimento U
     void moveU() {
         GirarFaceHor(U);
         vector<int> temp = F[0];
@@ -85,12 +88,12 @@ public:
         L[0] = temp;
     }
     
-    //movimento U'
+    // movimento U'
     void moveU_antihor() {
         moveU(); moveU(); moveU();
     }
 
-    //movimento D
+    // movimento D
     void moveD() {
         GirarFaceHor(D);
         vector<int> temp = F[1];
@@ -100,12 +103,12 @@ public:
         R[1] = temp;
     }
 
-    //movimento D'
+    // movimento D'
     void moveD_antihor() {
         moveD(); moveD(); moveD();
     }
 
-    //movimento F
+    // movimento F
     void moveF() {
         GirarFaceHor(F);
         vector<int> tempU = {U[1][0], U[1][1]};
@@ -119,12 +122,12 @@ public:
         R[0][0] = tempU[1];
     }
 
-    //movimento F'
+    // movimento F'
     void moveF_antihor() {
         moveF(); moveF(); moveF();
     }
 
-    //movimento B
+    // movimento B
     void moveB() {
         GirarFaceHor(B);
         vector<int> tempU = {U[0][0], U[0][1]};
@@ -138,12 +141,12 @@ public:
         L[0][0] = tempU[1];
     }
 
-    //movimento B'
+    // movimento B'
     void moveB_antihor() {
         moveB(); moveB(); moveB();
     }
 
-    //movimento L
+    // movimento L
     void moveL() {
         GirarFaceHor(L);
         vector<int> tempU = {U[0][0], U[1][0]};
@@ -157,12 +160,12 @@ public:
         F[1][0] = tempU[1];
     }
     
-    //movimento L'
+    // movimento L'
     void moveL_antihor() {
         moveL(); moveL(); moveL();
     }
 
-    //movimento R
+    // movimento R
     void moveR() {
         GirarFaceHor(R);
         vector<int> tempU = {U[0][1], U[1][1]};
@@ -176,14 +179,13 @@ public:
         B[0][1] = tempU[1];
     }
 
-    //movimento R'
+    // movimento R'
     void moveR_antihor() {
         moveR(); moveR(); moveR();
     }
 
-
     bool estaResolvido() const {
-        //verifica se todas as faces têm a mesma cor
+        // verifica se todas as faces têm a mesma cor
         for (int i = 0; i < 2; ++i) {
             for (int j = 0; j < 2; ++j) {
                 if (U[i][j] != U[0][0] || F[i][j] != F[0][0] ||
@@ -198,12 +200,12 @@ public:
 
     void embaralhar() {
         unsigned seed = chrono::high_resolution_clock::now()
-                        .time_since_epoch()
-                        .count();
+                         .time_since_epoch()
+                         .count();
 
         mt19937 gerador(seed);
 
-        uniform_int_distribution<int> distribuicao(1, 6);
+        uniform_int_distribution<int> distribuicao(1, 12);
 
         ll numMovimentos = 0;
 
@@ -240,6 +242,12 @@ public:
                 case 4: moveB(); break;
                 case 5: moveL(); break;
                 case 6: moveR(); break;
+                case 7: moveU_antihor(); break;
+                case 8: moveD_antihor(); break;
+                case 9: moveF_antihor(); break;
+                case 10: moveB_antihor(); break;
+                case 11: moveL_antihor(); break;
+                case 12: moveR_antihor(); break;
             }
         }
 
@@ -247,11 +255,96 @@ public:
         printCube();
     }
 
-    
+    string toString() const {
+        string s = "";
+        for (const auto& row : U) for (int c : row) s += to_string(c);
+        for (const auto& row : D) for (int c : row) s += to_string(c);
+        for (const auto& row : F) for (int c : row) s += to_string(c);
+        for (const auto& row : B) for (int c : row) s += to_string(c);
+        for (const auto& row : L) for (int c : row) s += to_string(c);
+        for (const auto& row : R) for (int c : row) s += to_string(c);
+        return s;
+    }
 };
 
+struct EstadoCubo {
+    Cubo2x2 cubo;
+    string caminho; // Sequência de movimentos para chegar a este estado
+};
+
+void resolveComBFS(Cubo2x2& cuboInicial) {
+    // Verifica se o cubo já está resolvido no início
+    if (cuboInicial.estaResolvido()) {
+        cout << "O cubo ja esta resolvido!" << endl;
+        return;
+    }
+
+    queue<EstadoCubo> fila;
+    unordered_map<string, bool> visitados;
+
+    // Adiciona o estado inicial na fila e no conjunto de visitados
+    fila.push({cuboInicial, ""});
+    visitados[cuboInicial.toString()] = true;
+
+    // Define os 12 movimentos possíveis
+    vector<pair<string, function<void(Cubo2x2&)>>> movimentos = {
+        {"U", [](Cubo2x2& c){ c.moveU(); }},
+        //{"U'", [](Cubo2x2& c){ c.moveU_antihor(); }},
+        {"D", [](Cubo2x2& c){ c.moveD(); }},
+        //{"D'", [](Cubo2x2& c){ c.moveD_antihor(); }},
+        {"F", [](Cubo2x2& c){ c.moveF(); }},
+        //{"F'", [](Cubo2x2& c){ c.moveF_antihor(); }},
+        {"B", [](Cubo2x2& c){ c.moveB(); }},
+        //{"B'", [](Cubo2x2& c){ c.moveB_antihor(); }},
+        {"L", [](Cubo2x2& c){ c.moveL(); }},
+        //{"L'", [](Cubo2x2& c){ c.moveL_antihor(); }},
+        {"R", [](Cubo2x2& c){ c.moveR(); }}
+        //{"R'", [](Cubo2x2& c){ c.moveR_antihor(); }}
+    };
+
+    while (!fila.empty()) {
+        EstadoCubo estadoAtual = fila.front();
+        fila.pop();
+        
+        // Verifica se chegamos à solução antes de expandir
+        if (estadoAtual.cubo.estaResolvido()) {
+            // Conta os movimentos de forma robusta
+            int numMovimentos = 0;
+            if (!estadoAtual.caminho.empty()) {
+                numMovimentos = 1;
+                for (char c : estadoAtual.caminho) {
+                    if (c == ' ') {
+                        numMovimentos++;
+                    }
+                }
+            }
+            
+            cout << "\nSolucao encontrada em " << numMovimentos << " movimentos!" << endl;
+            cout << "Sequencia de movimentos: " << estadoAtual.caminho << endl;
+            estadoAtual.cubo.printCube();
+            return;
+        }
+
+        // Gera os próximos estados (nós filhos)
+        for (const auto& mov : movimentos) {
+            Cubo2x2 proximoCubo = estadoAtual.cubo;
+            mov.second(proximoCubo); // Aplica o movimento
+            string proximoEstadoStr = proximoCubo.toString();
+
+            // Se o estado não foi visitado, adicione-o à fila
+            if (visitados.find(proximoEstadoStr) == visitados.end()) {
+                visitados[proximoEstadoStr] = true;
+                string proximoCaminho = estadoAtual.caminho + (estadoAtual.caminho.empty() ? "" : " ") + mov.first;
+                fila.push({proximoCubo, proximoCaminho});
+            }
+        }
+    }
+
+    cout << "Nao foi possivel encontrar a solucao." << endl;
+}
+
 void jogador(Cubo2x2& cubo) {
-    ll movimento=0;
+    ll movimento = 0;
 
     while(movimento != -1) {
 
@@ -272,7 +365,7 @@ void jogador(Cubo2x2& cubo) {
             cubo.printCube();
             if (cubo.estaResolvido()) {
                 cout << "\nCUBO RESOLVIDO" << endl;
-            }else {
+            } else {
                 cout << "\nCUBO NAO RESOLVIDO" << endl;
             }
             break;
@@ -281,7 +374,7 @@ void jogador(Cubo2x2& cubo) {
             cubo.printCube();
             if (cubo.estaResolvido()) {
                 cout << "\nCUBO RESOLVIDO" << endl;
-            }else {
+            } else {
                 cout << "\nCUBO NAO RESOLVIDO" << endl;
             }
             break;
@@ -290,7 +383,7 @@ void jogador(Cubo2x2& cubo) {
             cubo.printCube();
             if (cubo.estaResolvido()) {
                 cout << "\nCUBO RESOLVIDO" << endl;
-            }else {
+            } else {
                 cout << "\nCUBO NAO RESOLVIDO" << endl;
             }
             break;
@@ -299,7 +392,7 @@ void jogador(Cubo2x2& cubo) {
             cubo.printCube();
             if (cubo.estaResolvido()) {
                 cout << "\nCUBO RESOLVIDO" << endl;
-            }else {
+            } else {
                 cout << "\nCUBO NAO RESOLVIDO" << endl;
             }
             break;
@@ -308,7 +401,7 @@ void jogador(Cubo2x2& cubo) {
             cubo.printCube();
             if (cubo.estaResolvido()) {
                 cout << "\nCUBO RESOLVIDO" << endl;
-            }else {
+            } else {
                 cout << "\nCUBO NAO RESOLVIDO" << endl;
             }
             break;
@@ -317,7 +410,7 @@ void jogador(Cubo2x2& cubo) {
             cubo.printCube();
             if (cubo.estaResolvido()) {
                 cout << "\nCUBO RESOLVIDO" << endl;
-            }else {
+            } else {
                 cout << "\nCUBO NAO RESOLVIDO" << endl;
             }
             break;
@@ -326,7 +419,7 @@ void jogador(Cubo2x2& cubo) {
             cubo.printCube();
             if (cubo.estaResolvido()) {
                 cout << "\nCUBO RESOLVIDO" << endl;
-            }else {
+            } else {
                 cout << "\nCUBO NAO RESOLVIDO" << endl;
             }
             break;
@@ -335,7 +428,7 @@ void jogador(Cubo2x2& cubo) {
             cubo.printCube();
             if (cubo.estaResolvido()) {
                 cout << "\nCUBO RESOLVIDO" << endl;
-            }else {
+            } else {
                 cout << "\nCUBO NAO RESOLVIDO" << endl;
             }
             break;
@@ -344,7 +437,7 @@ void jogador(Cubo2x2& cubo) {
             cubo.printCube();
             if (cubo.estaResolvido()) {
                 cout << "\nCUBO RESOLVIDO" << endl;
-            }else {
+            } else {
                 cout << "\nCUBO NAO RESOLVIDO" << endl;
             }
             break;
@@ -353,7 +446,7 @@ void jogador(Cubo2x2& cubo) {
             cubo.printCube();
             if (cubo.estaResolvido()) {
                 cout << "\nCUBO RESOLVIDO" << endl;
-            }else {
+            } else {
                 cout << "\nCUBO NAO RESOLVIDO" << endl;
             }
             break;
@@ -362,7 +455,7 @@ void jogador(Cubo2x2& cubo) {
             cubo.printCube();
             if (cubo.estaResolvido()) {
                 cout << "\nCUBO RESOLVIDO" << endl;
-            }else {
+            } else {
                 cout << "\nCUBO NAO RESOLVIDO" << endl;
             }
             break;
@@ -371,7 +464,7 @@ void jogador(Cubo2x2& cubo) {
             cubo.printCube();
             if (cubo.estaResolvido()) {
                 cout << "\nCUBO RESOLVIDO" << endl;
-            }else {
+            } else {
                 cout << "\nCUBO NAO RESOLVIDO" << endl;
             }
             break;
@@ -387,7 +480,7 @@ void jogador(Cubo2x2& cubo) {
 
 int main() {
     Cubo2x2 cubo;
-    Cubo2x2 cuboInicial; //cubo resolvido para referencia
+    Cubo2x2 cuboInicial; // cubo resolvido para referencia
     cuboInicial = cubo;
 
     cout << "Cubo inicial (resolvido):" << endl;
@@ -419,7 +512,7 @@ int main() {
             jogador(cubo);
             break;
         case 2:
-            cout << "Funcao BFS ainda nao implementada." << endl;
+            resolveComBFS(cubo);
             break;
         case 3:
             cout << "Funcao DFS ainda nao implementada." << endl;
