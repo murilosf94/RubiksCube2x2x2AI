@@ -3,6 +3,7 @@
 #include <string>
 #include <chrono>
 #include <random>
+#include <unordered_set> // <-- NOVO INCLUDE: Essencial para guardar os estados visitados
 
 using namespace std;
 #define ll long long
@@ -181,6 +182,17 @@ public:
         moveR(); moveR(); moveR();
     }
 
+    // salvamento de estado
+    string toString() const {
+        string estado_str;
+        for (const auto& linha : U) for (int cor_int : linha) estado_str += cor(cor_int);
+        for (const auto& linha : D) for (int cor_int : linha) estado_str += cor(cor_int);
+        for (const auto& linha : F) for (int cor_int : linha) estado_str += cor(cor_int);
+        for (const auto& linha : B) for (int cor_int : linha) estado_str += cor(cor_int);
+        for (const auto& linha : L) for (int cor_int : linha) estado_str += cor(cor_int);
+        for (const auto& linha : R) for (int cor_int : linha) estado_str += cor(cor_int);
+        return estado_str;
+    }
 
     bool estaResolvido() const {
         //verifica se todas as faces têm a mesma cor
@@ -194,7 +206,7 @@ public:
             }
         }
         return true;
-    }
+    }   
 
     void embaralhar() {
         unsigned seed = chrono::high_resolution_clock::now()
@@ -246,8 +258,6 @@ public:
         cout << "\nCubo embaralhado:" << endl;
         printCube();
     }
-
-    
 };
 
 void jogador(Cubo2x2& cubo) {
@@ -385,6 +395,55 @@ void jogador(Cubo2x2& cubo) {
     }
 }
 
+// salvar e demonstrar estados salvos
+void demonstrarSalvamentoDeEstado(Cubo2x2 cubo) {
+    // 1. cria a "memória", para guardar as strings dos estados visitados.
+    unordered_set<string> estados_visitados;
+
+    cout << "\n--- DEMONSTRACAO DE SALVAMENTO DE ESTADO ---\n";
+
+    // 2. pega estado inicial, converte em string e salva
+    string estado_inicial_str = cubo.toString();
+    estados_visitados.insert(estado_inicial_str);
+    cout << "Estado inicial salvo. Total de estados na memoria: " << estados_visitados.size() << endl;
+    cubo.printCube();
+    cout << "String do estado: " << estado_inicial_str << endl;
+
+    // 3. faz um movimento U
+    cout << "\nRealizando movimento U...\n";
+    cubo.moveU();
+    string estado_apos_U = cubo.toString();
+    
+    // 4. verifica se o novo estado esta na memoria
+    if (estados_visitados.count(estado_apos_U)) {
+        cout << "ESTADO REPETIDO! Ja vimos esta configuracao antes." << endl;
+    } else {
+        cout << "ESTADO NOVO! Salvando na memoria..." << endl;
+        estados_visitados.insert(estado_apos_U);
+    }
+    cout << "Total de estados na memoria: " << estados_visitados.size() << endl;
+    cubo.printCube();
+    cout << "String do estado: " << estado_apos_U << endl;
+
+    // 5. volta ao estado inicial (faz U')
+    cout << "\nDesfazendo movimento (U')...\n";
+    cubo.moveU_antihor();
+    string estado_final_str = cubo.toString();
+
+    // 6. verifica se é igual ao inicial
+    cout << "Verificando o estado atual..." << endl;
+     if (estados_visitados.count(estado_final_str)) {
+        cout << "ESTADO REPETIDO! ESTÁ CORRETO!." << endl;
+    } else {
+        cout << "ESTADO NOVO! Algo deu errado." << endl;
+    }
+    cout << "Total de estados na memoria: " << estados_visitados.size() << endl;
+    cubo.printCube();
+    cout << "String do estado: " << estado_final_str << endl;
+
+    cout << "\n--- FIM DA DEMONSTRACAO ---\n";
+}
+
 int main() {
     Cubo2x2 cubo;
     Cubo2x2 cuboInicial; //cubo resolvido para referencia
@@ -411,6 +470,7 @@ int main() {
     cout << "2- IA (BFS)" << endl;
     cout << "3- IA (DFS)" << endl;
     cout << "4- IA (A*)" << endl;
+    cout << "5- Demonstrar Salvamento de Estados" << endl;
     cout << "Escolha uma opcao: ";
     int escolha;
     cin >> escolha;
@@ -426,6 +486,9 @@ int main() {
             break;
         case 4:
             cout << "Funcao A* ainda nao implementada." << endl;
+            break;
+        case 5:
+            demonstrarSalvamentoDeEstado(cubo);
             break;
         default:
             cout << "Opcao invalida. Encerrando o programa." << endl;
