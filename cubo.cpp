@@ -267,7 +267,7 @@ void resolveComBFS(Cubo2x2& cuboInicial) {
 
     int estadosExplorados = 0;
     const int MAX_ESTADOS = 4000000; 
-    const int MAX_PROFUNDIDADE = 20; 
+    const int MAX_PROFUNDIDADE = 30; 
 
     while (!fila.empty() && estadosExplorados < MAX_ESTADOS) {
         EstadoCubo estadoAtual = std::move(fila.front());
