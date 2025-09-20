@@ -18,15 +18,15 @@
 using namespace std;
 #define ll long long
 
-// --- Funções de Interface (do segundo código) ---
+// --- Funções de Interface ---
 void habilitarCores() {
 #ifdef _WIN32
     HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
     if (hOut == INVALID_HANDLE_VALUE) return;
     DWORD dwMode = 0;
-    if (!GetConsoleMode(hOut, &dwMode)) return;
+    if (!GetConsoleMode(hOut, &dwMode)) return;         
     dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-    if (!SetConsoleMode(hOut, dwMode)) return;
+    if (!SetConsoleMode(hOut, dwMode)) return;        
 #endif
 }
 
@@ -38,7 +38,7 @@ void limparTela() {
 #endif
 }
 
-// --- Estrutura de Dados otimizada (do primeiro código) ---
+// --- Estrutura de Dados otimizada ---
 using Face = array<array<int, 2>, 2>;
 
 class Cubo2x2 {
@@ -53,53 +53,56 @@ private:
         face[0][1] = temp;
     }
 
-    // --- Função de cor com blocos (do segundo código) ---
     string cor(int color) const {
-        string block = "██"; 
+        string block = "██";
         switch (color) {
-            case 0: return "\033[1;37m" + block + "\033[0m"; case 1: return "\033[1;33m" + block + "\033[0m";
-            case 2: return "\033[1;34m" + block + "\033[0m"; case 3: return "\033[1;38;5;208m" + block + "\033[0m";
-            case 4: return "\033[1;32m" + block + "\033[0m"; case 5: return "\033[1;31m" + block + "\033[0m";
+            case 0: return "\033[1;37m" + block + "\033[0m";
+            case 1: return "\033[1;33m" + block + "\033[0m";
+            case 2: return "\033[1;34m" + block + "\033[0m";
+            case 3: return "\033[1;38;5;208m" + block + "\033[0m";
+            case 4: return "\033[1;32m" + block + "\033[0m";
+            case 5: return "\033[1;31m" + block + "\033[0m";
             default: return "??";
         }
     }
 
-    // --- Seção de Resolução DFS (privada, do segundo código) ---
     bool dfs(int profundidade_max, vector<int>& caminho) {
-        if (this->estaResolvido()) { return true; }
-        if (caminho.size() >= profundidade_max) { return false; }
-        
+        if (this->estaResolvido()) {
+            return true;
+        }
+        if (caminho.size() >= profundidade_max) { 
+        return false;
+    }
+
         for (int i = 1; i <= 12; ++i) {
             fazerMovimento(i);
             caminho.push_back(i);
-            if (dfs(profundidade_max, caminho)) { return true; }
+            if (dfs(profundidade_max, caminho)) {
+                return true;
+            }
             caminho.pop_back();
             fazerMovimentoInverso(i);
         }
         return false;
     }
 
-public:
-    void fazerMovimento(int moveId) {
-        switch(moveId) {
-            case 1: moveU(); break;  case 2: moveD(); break;  case 3: moveF(); break;
-            case 4: moveB(); break;  case 5: moveL(); break;  case 6: moveR(); break;
-            case 7: moveU_antihor(); break; case 8: moveD_antihor(); break;
-            case 9: moveF_antihor(); break; case 10: moveB_antihor(); break;
-            case 11: moveL_antihor(); break; case 12: moveR_antihor(); break;
-        }
-    }
-private:
     void fazerMovimentoInverso(int moveId) {
-        switch(moveId) {
-            case 1: moveU_antihor(); break; case 2: moveD_antihor(); break;
-            case 3: moveF_antihor(); break; case 4: moveB_antihor(); break;
-            case 5: moveL_antihor(); break; case 6: moveR_antihor(); break;
-            case 7: moveU(); break; case 8: moveD(); break; case 9: moveF(); break;
-            case 10: moveB(); break; case 11: moveL(); break; case 12: moveR(); break;
+        switch (moveId) {
+            case 1: moveU_antihor(); break;
+            case 2: moveD_antihor(); break;
+            case 3: moveF_antihor(); break;
+            case 4: moveB_antihor(); break;
+            case 5: moveL_antihor(); break;
+            case 6: moveR_antihor(); break;
+            case 7: moveU(); break;
+            case 8: moveD(); break;
+            case 9: moveF(); break;
+            case 10: moveB(); break;
+            case 11: moveL(); break;
+            case 12: moveR(); break;
         }
     }
-    
+
     string getNomeMovimento(int moveId) {
         const char* nomes[] = {"", "U", "D", "F", "B", "L", "R", "U'", "D'", "F'", "B'", "L'", "R'"};
         return nomes[moveId];
@@ -107,28 +110,46 @@ private:
 
 public:
     Cubo2x2() {
-        U = {{{0, 0}, {0, 0}}}; D = {{{1, 1}, {1, 1}}};
-        F = {{{2, 2}, {2, 2}}}; B = {{{4, 4}, {4, 4}}};
-        L = {{{5, 5}, {5, 5}}}; R = {{{3, 3}, {3, 3}}};
+        U = {{{0, 0}, {0, 0}}};
+        D = {{{1, 1}, {1, 1}}};
+        F = {{{2, 2}, {2, 2}}};
+        B = {{{4, 4}, {4, 4}}};
+        L = {{{5, 5}, {5, 5}}};
+        R = {{{3, 3}, {3, 3}}};
     }
 
-    // --- Interface Gráfica (do segundo código) ---
+    void fazerMovimento(int moveId) {
+        switch (moveId) {
+            case 1:  moveU(); break;
+            case 2:  moveD(); break;
+            case 3:  moveF(); break;
+            case 4:  moveB(); break;
+            case 5:  moveL(); break;
+            case 6:  moveR(); break;
+            case 7:  moveU_antihor(); break;
+            case 8:  moveD_antihor(); break;
+            case 9:  moveF_antihor(); break;
+            case 10: moveB_antihor(); break;
+            case 11: moveL_antihor(); break;
+            case 12: moveR_antihor(); break;
+        }
+    }
+
     void printCube() const {
-        cout << "     ╔════╗" << endl;
-        cout << "     ║" << cor(U[0][0]) << cor(U[0][1]) << "║  (U - Topo)" << endl;
-        cout << "     ║" << cor(U[1][0]) << cor(U[1][1]) << "║" << endl;
+        cout << "      ╔════╗" << endl;
+        cout << "      ║" << cor(U[0][0]) << cor(U[0][1]) << "║  (U - Topo)" << endl;
+        cout << "      ║" << cor(U[1][0]) << cor(U[1][1]) << "║" << endl;
         cout << "╔════╬════╬════╦════╗" << endl;
         cout << "║" << cor(L[0][0]) << cor(L[0][1]) << "║" << cor(F[0][0]) << cor(F[0][1]) << "║" << cor(R[0][0]) << cor(R[0][1]) << "║" << cor(B[0][0]) << cor(B[0][1]) << "║" << endl;
         cout << "║" << cor(L[1][0]) << cor(L[1][1]) << "║" << cor(F[1][0]) << cor(F[1][1]) << "║" << cor(R[1][0]) << cor(R[1][1]) << "║" << cor(B[1][0]) << cor(B[1][1]) << "║" << endl;
         cout << "╠════╩════╩════╩════╣" << endl;
         cout << "║(L) (F)  (R)  (B)  ║" << endl;
         cout << "╚════╦════╦════╦════╝" << endl;
-        cout << "     ║" << cor(D[0][0]) << cor(D[0][1]) << "║" << endl;
-        cout << "     ║" << cor(D[1][0]) << cor(D[1][1]) << "║  (D - Base)" << endl;
-        cout << "     ╚════╝" << endl;
+        cout << "      ║" << cor(D[0][0]) << cor(D[0][1]) << "║" << endl;
+        cout << "      ║" << cor(D[1][0]) << cor(D[1][1]) << "║  (D - Base)" << endl;
+        cout << "      ╚════╝" << endl;
     }
 
-    // --- Funções de Hashing e Comparação (do primeiro código) ---
     inline uint64_t getHashCode() const {
         uint64_t hash = 0;
         const int* data = reinterpret_cast<const int*>(this);
@@ -142,7 +163,7 @@ public:
         return memcmp(this, &other, sizeof(Cubo2x2)) == 0;
     }
 
-    // --- Movimentos (do primeiro código, mais eficientes) ---
+    // --- Movimentos ---
     inline void moveU() { GirarFaceHor(U); int temp0 = F[0][0], temp1 = F[0][1]; F[0][0] = R[0][0]; F[0][1] = R[0][1]; R[0][0] = B[0][0]; R[0][1] = B[0][1]; B[0][0] = L[0][0]; B[0][1] = L[0][1]; L[0][0] = temp0; L[0][1] = temp1; }
     inline void moveU_antihor() { moveU(); moveU(); moveU(); }
     inline void moveD() { GirarFaceHor(D); int temp0 = F[1][0], temp1 = F[1][1]; F[1][0] = L[1][0]; F[1][1] = L[1][1]; L[1][0] = B[1][0]; L[1][1] = B[1][1]; B[1][0] = R[1][0]; B[1][1] = R[1][1]; R[1][0] = temp0; R[1][1] = temp1; }
@@ -157,10 +178,14 @@ public:
     inline void moveR_antihor() { moveR(); moveR(); moveR(); }
 
     inline bool estaResolvido() const {
-        return (U[0][0] == U[0][1] && U[0][1] == U[1][0] && U[1][0] == U[1][1]) && (D[0][0] == D[0][1] && D[0][1] == D[1][0] && D[1][0] == D[1][1]) && (F[0][0] == F[0][1] && F[0][1] == F[1][0] && F[1][0] == F[1][1]) && (B[0][0] == B[0][1] && B[0][1] == B[1][0] && B[1][0] == B[1][1]) && (L[0][0] == L[0][1] && L[0][1] == L[1][0] && L[1][0] == L[1][1]) && (R[0][0] == R[0][1] && R[0][1] == R[1][0] && R[1][0] == R[1][1]);
+        return (U[0][0] == U[0][1] && U[0][1] == U[1][0] && U[1][0] == U[1][1]) &&
+               (D[0][0] == D[0][1] && D[0][1] == D[1][0] && D[1][0] == D[1][1]) &&
+               (F[0][0] == F[0][1] && F[0][1] == F[1][0] && F[1][0] == F[1][1]) &&
+               (B[0][0] == B[0][1] && B[0][1] == B[1][0] && B[1][0] == B[1][1]) &&
+               (L[0][0] == L[0][1] && L[0][1] == L[1][0] && L[1][0] == L[1][1]) &&
+               (R[0][0] == R[0][1] && R[0][1] == R[1][0] && R[1][0] == R[1][1]);
     }
 
-    // --- Função de embaralhamento (lógica do primeiro, menu do segundo) ---
     void embaralhar() {
         limparTela();
         unsigned seed = chrono::high_resolution_clock::now().time_since_epoch().count();
@@ -169,30 +194,36 @@ public:
         ll numMovimentos = 0;
 
         cout << "╔════════════════════════════════╗" << endl;
-        cout << "║    NÍVEL DE EMBARALHAMENTO     ║" << endl;
+        cout << "║      NÍVEL DE EMBARALHAMENTO     ║" << endl;
         cout << "╠════════════════════════════════╣" << endl;
         cout << "║ 1. Fácil (5 movimentos)        ║" << endl;
         cout << "║ 2. Médio (10 movimentos)       ║" << endl;
         cout << "║ 3. Difícil (15 movimentos)     ║" << endl;
         cout << "╚════════════════════════════════╝" << endl;
         cout << "Escolha o nivel (1-3): ";
-        int nivel; cin >> nivel;
+        int nivel;
+        cin >> nivel;
 
         switch (nivel) {
-            case 1: numMovimentos = 5; break; case 2: numMovimentos = 10; break;
-            case 3: numMovimentos = 15; break; default: cout << "Nivel invalido. Usando facil.\n"; numMovimentos = 5; break;
+            case 1: numMovimentos = 5; break;
+            case 2: numMovimentos = 10; break;
+            case 3: numMovimentos = 15; break;
+            default:
+                cout << "Nivel invalido. Usando facil.\n";
+                numMovimentos = 5;
+                break;
         }
 
         int movimentoAnterior = -1;
         vector<string> movimentos_realizados;
-        movimentos_realizados.reserve(numMovimentos); 
+        movimentos_realizados.reserve(numMovimentos);
 
         for (int i = 0; i < numMovimentos; ++i) {
             int movimento;
             do {
                 movimento = distribuicao(gerador);
             } while (movimento == movimentoAnterior);
-            
+
             movimentoAnterior = movimento;
             fazerMovimento(movimento);
             movimentos_realizados.push_back(getNomeMovimento(movimento));
@@ -200,31 +231,40 @@ public:
 
         limparTela();
         cout << "\nMovimentos realizados para embaralhar: ";
-        for (const string& mov : movimentos_realizados) { cout << mov << " "; }
+        for (const string& mov : movimentos_realizados) {
+            cout << mov << " ";
+        }
         cout << endl;
         cout << "\nCubo embaralhado:" << endl;
         printCube();
     }
 
-    // --- Solver DFS (do segundo código) ---
     void resolverComDFS() {
         for (int profundidade_max = 1; profundidade_max <= 14; ++profundidade_max) {
-            limparTela(); cout << "Procurando solucao com ate " << profundidade_max << " movimentos..." << endl;
-            vector<int> caminho; Cubo2x2 copia = *this;
+            limparTela();
+            cout << "Procurando solucao com ate " << profundidade_max << " movimentos..." << endl;
+            vector<int> caminho;
+            Cubo2x2 copia = *this;
             if (copia.dfs(profundidade_max, caminho)) {
                 cout << "\n\033[1;32mSolucao encontrada!\033[0m" << endl;
-                cout << "Numero de movimentos: " << caminho.size() << endl; cout << "Caminho: ";
-                for (int moveId : caminho) { cout << getNomeMovimento(moveId) << " "; }
-                cout << endl; return;
+                cout << "Numero de movimentos: " << caminho.size() << endl;
+                cout << "Caminho: ";
+                for (int moveId : caminho) {
+                    cout << getNomeMovimento(moveId) << " ";
+                }
+                cout << endl;
+                return;
             }
         }
         cout << "\nNao foi possivel encontrar uma solucao em tempo habil." << endl;
     }
 };
 
-// --- Estruturas de dados para o BFS (do primeiro código) ---
+// --- Estruturas de dados para o BFS ---
 struct CuboHasher {
-    inline size_t operator()(const Cubo2x2& cubo) const { return cubo.getHashCode(); }
+    inline size_t operator()(const Cubo2x2& cubo) const {
+        return cubo.getHashCode();
+    }
 };
 
 struct EstadoCubo {
@@ -247,9 +287,12 @@ string decodificarCaminho(uint32_t encoded, uint8_t num_movs) {
     return resultado;
 }
 
-// --- Solver BFS (do primeiro código) ---
+// --- Solver BFS ---
 void resolveComBFS(Cubo2x2& cuboInicial) {
-    if (cuboInicial.estaResolvido()) { cout << "O cubo ja esta resolvido!" << endl; return; }
+    if (cuboInicial.estaResolvido()) {
+        cout << "O cubo ja esta resolvido!" << endl;
+        return;
+    }
     auto inicio = chrono::high_resolution_clock::now();
     deque<EstadoCubo> fila;
     unordered_set<Cubo2x2, CuboHasher> visitados;
@@ -257,10 +300,14 @@ void resolveComBFS(Cubo2x2& cuboInicial) {
     fila.emplace_back(cuboInicial);
     visitados.insert(cuboInicial);
 
-    void (Cubo2x2::*movimentos[12])() = { &Cubo2x2::moveU, &Cubo2x2::moveU_antihor, &Cubo2x2::moveD, &Cubo2x2::moveD_antihor, &Cubo2x2::moveF, &Cubo2x2::moveF_antihor, &Cubo2x2::moveB, &Cubo2x2::moveB_antihor, &Cubo2x2::moveL, &Cubo2x2::moveL_antihor, &Cubo2x2::moveR, &Cubo2x2::moveR_antihor };
+    void (Cubo2x2::*movimentos[12])() = {
+        &Cubo2x2::moveU, &Cubo2x2::moveU_antihor, &Cubo2x2::moveD, &Cubo2x2::moveD_antihor,
+        &Cubo2x2::moveF, &Cubo2x2::moveF_antihor, &Cubo2x2::moveB, &Cubo2x2::moveB_antihor,
+        &Cubo2x2::moveL, &Cubo2x2::moveL_antihor, &Cubo2x2::moveR, &Cubo2x2::moveR_antihor
+    };
     const uint8_t mov_codes[12] = {1, 7, 2, 8, 3, 9, 4, 10, 5, 11, 6, 12};
     int estadosExplorados = 0;
-    const int MAX_PROFUNDIDADE = 8; 
+    const int MAX_PROFUNDIDADE = 8;
 
     while (!fila.empty()) {
         EstadoCubo estadoAtual = std::move(fila.front());
@@ -271,7 +318,7 @@ void resolveComBFS(Cubo2x2& cuboInicial) {
             auto fim = chrono::high_resolution_clock::now();
             auto duracao = chrono::duration_cast<chrono::milliseconds>(fim - inicio);
             string caminho = decodificarCaminho(estadoAtual.caminho_encoded, estadoAtual.num_movimentos);
-            
+
             cout << "\n=== SOLUCAO ENCONTRADA PELO BFS ===" << endl;
             cout << "Movimentos: " << (int)estadoAtual.num_movimentos << endl;
             cout << "Estados explorados: " << estadosExplorados << endl;
@@ -297,52 +344,98 @@ void resolveComBFS(Cubo2x2& cuboInicial) {
     cout << "Solucao nao encontrada dentro do limite de profundidade." << endl;
 }
 
-// --- Modo Jogador (do segundo código) ---
+// --- Modo Jogador ---
 void jogador(Cubo2x2& cubo) {
     ll movimento = 0;
     while (movimento != -1) {
-        limparTela(); cout << "---------------JOGADOR---------------\n" << endl; cubo.printCube();
+        limparTela();
+        cout << "---------------JOGADOR---------------\n" << endl;
+        cubo.printCube();
         cout << "\n╔═══════════════ MOVIMENTOS ═══════════════╗" << endl;
         cout << "║ Horario:    1-U  2-D  3-F  4-B  5-L  6-R   ║" << endl;
         cout << "║ Anti-hor.:  7-U' 8-D' 9-F' 10-B' 11-L' 12-R' ║" << endl;
         cout << "╠════════════════════════════════════════════╣" << endl;
         cout << "║ Para SAIR, digite -1                       ║" << endl;
         cout << "╚════════════════════════════════════════════╝" << endl;
-        cout << "Digite o movimento desejado: "; cin >> movimento;
-        
+        cout << "Digite o movimento desejado: ";
+        cin >> movimento;
+
         if (movimento >= 1 && movimento <= 12) {
-            cubo.fazerMovimento(movimento); // Usando a função helper
-            limparTela(); cubo.printCube();
-            if (cubo.estaResolvido()) { cout << "\n\033[1;32mCUBO RESOLVIDO!\033[0m" << endl; movimento = -1; /* Sair do loop */ } 
-            else { cout << "\nCUBO NAO RESOLVIDO" << endl; }
-        } else if (movimento == -1) { cout << "\nSaindo..." << endl;
-        } else { cout << "\nMovimento invalido!" << endl; }
-        
-        if (movimento != -1) { cout << "\nPressione Enter para continuar..."; cin.ignore(); cin.get(); }
+            cubo.fazerMovimento(movimento);
+            limparTela();
+            cubo.printCube();
+            if (cubo.estaResolvido()) {
+                cout << "\n\033[1;32mCUBO RESOLVIDO!\033[0m" << endl;
+                movimento = -1; // Sair do loop
+            } else {
+                cout << "\nCUBO NAO RESOLVIDO" << endl;
+            }
+        } else if (movimento == -1) {
+            cout << "\nSaindo..." << endl;
+        } else {
+            cout << "\nMovimento invalido!" << endl;
+        }
+
+        if (movimento != -1) {
+            cout << "\nPressione Enter para continuar...";
+            cin.ignore();
+            cin.get();
+        }
     }
 }
 
-// --- Função Principal (do segundo código) ---
+// --- Função Principal ---
 int main() {
     #ifdef _WIN32
-        system("chcp 65001 > nul"); 
+        system("chcp 65001 > nul");
     #endif
-    habilitarCores(); limparTela(); Cubo2x2 cubo;
-    cout << "Cubo inicial (resolvido):" << endl; cubo.printCube();
-    cout << "\n Deseja embaralhar o cubo?" << endl; cout << "1- Sim" << endl; cout << "2- Nao" << endl;
-    int opcao; cin >> opcao;
-    if (opcao == 1) { cubo.embaralhar(); } else { cout << "\nCubo nao embaralhado." << endl; }
-    
-    cout << "\n Como deseja resolver o cubo?" << endl; cout << "1- Jogador" << endl; cout << "2- IA (BFS)" << endl;
-    cout << "3- IA (DFS)" << endl; cout << "4- IA (A*)" << endl; cout << "Escolha uma opcao: ";
-    int escolha; cin >> escolha;
+
+    habilitarCores();
+    limparTela();
+
+    Cubo2x2 cubo;
+    cout << "Cubo inicial (resolvido):" << endl;
+    cubo.printCube();
+
+    cout << "\n Deseja embaralhar o cubo?" << endl;
+    cout << "1- Sim" << endl;
+    cout << "2- Nao" << endl;
+    int opcao;
+    cin >> opcao;
+
+    if (opcao == 1) {
+        cubo.embaralhar();
+    } else {
+        cout << "\nCubo nao embaralhado." << endl;
+    }
+
+    cout << "\n Como deseja resolver o cubo?" << endl;
+    cout << "1- Jogador" << endl;
+    cout << "2- IA (BFS)" << endl;
+    cout << "3- IA (DFS)" << endl;
+    cout << "4- IA (A*)" << endl;
+    cout << "Escolha uma opcao: ";
+    int escolha;
+    cin >> escolha;
 
     switch (escolha) {
-        case 1: jogador(cubo); break;
-        case 2: cout << "\nIniciando BFS..." << endl; resolveComBFS(cubo); break;
-        case 3: cout << "\nIniciando DFS..." << endl; cubo.resolverComDFS(); break;
-        case 4: cout << "Funcao A* ainda nao implementada." << endl; break;
-        default: cout << "Opcao invalida." << endl; break;
+        case 1:
+            jogador(cubo);
+            break;
+        case 2:
+            cout << "\nIniciando BFS..." << endl;
+            resolveComBFS(cubo);
+            break;
+        case 3:
+            cout << "\nIniciando DFS..." << endl;
+            cubo.resolverComDFS();
+            break;
+        case 4:
+            cout << "Funcao A* ainda nao implementada." << endl;
+            break;
+        default:
+            cout << "Opcao invalida." << endl;
+            break;
     }
     return 0;
 }
