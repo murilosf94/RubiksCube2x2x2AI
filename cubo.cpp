@@ -7,8 +7,10 @@
 #include <unordered_set>
 #include <array>
 #include <cstring>
-#include <queue>   // Adicionado para a fila de prioridade do A*
-#include <functional> // Adicionado para std::greater no A*
+#include <queue>      // para a fila de prioridade do A*
+#include <functional> // std::greater no A*
+#include <memory>     // std::shared_ptr
+#include <algorithm>  // std::reverse
 
 #ifdef _WIN32
 #include <windows.h>
@@ -68,7 +70,7 @@ private:
         }
     }
 
-    bool dfs(int profundidade_max, vector<int>& caminho) {
+    bool dfs(size_t profundidade_max, vector<int>& caminho) {
         if (this->estaResolvido()) {
             return true;
         }
@@ -187,9 +189,6 @@ public:
                (R[0][0] == R[0][1] && R[0][1] == R[1][0] && R[1][0] == R[1][1]);
     }
 
-    // NOVA FUNÇÃO: Heurística para o A*
-    // Conta quantas peças (stickers) não estão na sua face de cor correta.
-    // Divide por 8, pois um movimento pode, no máximo, corrigir 8 stickers.
     int calcularHeuristica() const {
         int pecas_fora_lugar = 0;
         const array<const Face*, 6> faces = {&U, &D, &F, &B, &L, &R};
@@ -203,13 +202,11 @@ public:
             if (face[1][0] != cor_correta) pecas_fora_lugar++;
             if (face[1][1] != cor_correta) pecas_fora_lugar++;
         }
-        // Heurística admissível: (nº de stickers errados) / 8
-        // A soma com 7 antes da divisão é um truque para arredondar para cima (ceil).
         return (pecas_fora_lugar + 7) / 8;
     }
 
 
-    void embaralhar() {
+    int embaralhar() {
         limparTela();
         unsigned seed = chrono::high_resolution_clock::now().time_since_epoch().count();
         mt19937 gerador(seed);
@@ -219,20 +216,20 @@ public:
         cout << "╔════════════════════════════════╗" << endl;
         cout << "║      NÍVEL DE EMBARALHAMENTO   ║" << endl;
         cout << "╠════════════════════════════════╣" << endl;
-        cout << "║ 1. Fácil (5 movimentos)        ║" << endl;
-        cout << "║ 2. Médio (10 movimentos)       ║" << endl;
-        cout << "║ 3. Difícil (15 movimentos)     ║" << endl;
+        cout << "║ 1. Fácil (3 movimentos)        ║" << endl;
+        cout << "║ 2. Médio (5 movimentos)        ║" << endl;
+        cout << "║ 3. Difícil (10 movimentos)     ║" << endl;
         cout << "╚════════════════════════════════╝" << endl;
         cout << "Escolha o nivel (1-3): ";
         int nivel;
         cin >> nivel;
 
         switch (nivel) {
-            case 1: numMovimentos = 5; break;
-            case 2: numMovimentos = 10; break;
-            case 3: numMovimentos = 15; break;
+            case 1: numMovimentos = 3; break;
+            case 2: numMovimentos = 5; break;
+            case 3: numMovimentos = 10; break;
             default:
-                cout << "Nivel invalido. Usando facil.\n";
+                cout << "Nivel invalido. Usando médio.\n";
                 numMovimentos = 5;
                 break;
         }
@@ -260,6 +257,8 @@ public:
         cout << endl;
         cout << "\nCubo embaralhado:" << endl;
         printCube();
+
+        return nivel;
     }
 
     void resolverComDFS() {
@@ -371,12 +370,15 @@ void resolveComBFS(Cubo2x2& cuboInicial) {
 }
 
 
-// Estrutura para representar um nó na busca A*
+// Estrutura para representar um nó na busca A* (MODIFICADA)
 struct NodeAStar {
     Cubo2x2 cubo;
     int g; // Custo do início até o nó atual (nº de movimentos)
     int h; // Custo estimado (heurística) do nó atual até o objetivo
-    vector<int> caminho; // Vetor para armazenar os movimentos
+
+    // Em vez de um vetor, armazenamos o pai e o movimento que nos trouxe até aqui
+    shared_ptr<NodeAStar> parent;
+    int move_from_parent;
 
     // Custo total f(n) = g(n) + h(n)
     int f() const {
@@ -386,12 +388,17 @@ struct NodeAStar {
     // Sobrecarga do operador '>' para a fila de prioridade (que é uma max-heap por padrão)
     // Queremos uma min-heap, então invertemos a lógica para que o menor 'f' tenha maior prioridade.
     bool operator>(const NodeAStar& other) const {
-        // Se os custos f() são iguais, desempata preferindo o que tem maior g()
-        // Isso faz o A* se comportar mais como BFS em caso de empate, explorando mais amplamente.
         if (f() == other.f()) {
             return g < other.g;
         }
         return f() > other.f();
+    }
+};
+
+// Estrutura de comparação para a fila de prioridade usar com ponteiros
+struct CompareNodePtr {
+    bool operator()(const shared_ptr<NodeAStar>& a, const shared_ptr<NodeAStar>& b) const {
+        return *a > *b; // Dereferencia os ponteiros para usar o operator> do NodeAStar
     }
 };
 
@@ -403,70 +410,81 @@ void resolveComAStar(Cubo2x2& cuboInicial) {
 
     auto inicio = chrono::high_resolution_clock::now();
 
-    // Fila de prioridade para armazenar os nós a serem explorados. O de menor 'f' sai primeiro.
-    priority_queue<NodeAStar, vector<NodeAStar>, greater<NodeAStar>> openSet;
+    // Fila de prioridade agora armazena ponteiros e usa o comparador customizado
+    priority_queue<shared_ptr<NodeAStar>, vector<shared_ptr<NodeAStar>>, CompareNodePtr> openSet;
 
-    // Conjunto para armazenar os estados já visitados para não os reprocessar.
+    // Conjunto para armazenar os estados já visitados
     unordered_set<Cubo2x2, CuboHasher> closedSet;
-    closedSet.reserve(200000); // Pre-alocação de memória
+    closedSet.reserve(200000);
 
-    // Criando o nó inicial
-    NodeAStar startNode;
-    startNode.cubo = cuboInicial;
-    startNode.g = 0;
-    startNode.h = cuboInicial.calcularHeuristica();
-    startNode.caminho.clear();
+    // Criando o nó inicial com shared_ptr
+    auto startNode = make_shared<NodeAStar>();
+    startNode->cubo = cuboInicial;
+    startNode->g = 0;
+    startNode->h = cuboInicial.calcularHeuristica();
+    startNode->parent = nullptr;
+    startNode->move_from_parent = 0; // Nenhum movimento para o nó inicial
 
     openSet.push(startNode);
     int estadosExplorados = 0;
 
     while (!openSet.empty()) {
-        // Pega o nó com o menor f() da fila
-        NodeAStar currentNode = openSet.top();
+        // Pega o nó com o menor f() da fila (agora é um ponteiro)
+        auto currentNode = openSet.top();
         openSet.pop();
         estadosExplorados++;
 
-        // Se o estado já foi visitado (com um custo menor ou igual), ignora.
-        if (closedSet.count(currentNode.cubo)) {
+        // Se o estado já foi visitado, ignora.
+        if (closedSet.count(currentNode->cubo)) {
             continue;
         }
-        closedSet.insert(currentNode.cubo);
+        closedSet.insert(currentNode->cubo);
 
         // Verifica se chegamos ao estado resolvido
-        if (currentNode.cubo.estaResolvido()) {
+        if (currentNode->cubo.estaResolvido()) {
             auto fim = chrono::high_resolution_clock::now();
             auto duracao = chrono::duration_cast<chrono::milliseconds>(fim - inicio);
 
+            // --- RECONSTRUÇÃO DO CAMINHO ---
+            vector<int> caminho_final;
+            auto tempNode = currentNode;
+            while (tempNode->parent != nullptr) {
+                caminho_final.push_back(tempNode->move_from_parent);
+                tempNode = tempNode->parent;
+            }
+            reverse(caminho_final.begin(), caminho_final.end());
+
             cout << "\n=== SOLUCAO ENCONTRADA PELO A* ===" << endl;
-            cout << "Movimentos: " << currentNode.g << endl;
+            cout << "Movimentos: " << caminho_final.size() << endl;
             cout << "Estados explorados: " << estadosExplorados << endl;
             cout << "Tempo: " << duracao.count() << " ms" << endl;
             cout << "Sequencia: ";
-            for (int moveId : currentNode.caminho) {
+            for (int moveId : caminho_final) {
                 cout << cuboInicial.getNomeMovimento(moveId) << " ";
             }
-            currentNode.cubo.printCube();
+            currentNode->cubo.printCube();
             cout << endl;
             return;
         }
 
-        // Gera os sucessores (vizinhos) aplicando todos os 12 movimentos possíveis
+        // Gera os sucessores
         for (int i = 1; i <= 12; ++i) {
-            NodeAStar neighborNode = currentNode;
-            neighborNode.cubo.fazerMovimento(i);
+            Cubo2x2 proximoCubo = currentNode->cubo;
+            proximoCubo.fazerMovimento(i);
 
-            // Se o vizinho ainda não foi visitado
-            if (closedSet.find(neighborNode.cubo) == closedSet.end()) {
-                neighborNode.g = currentNode.g + 1; // Custo para chegar aqui é +1
-                neighborNode.h = neighborNode.cubo.calcularHeuristica(); // Calcula a heurística
-                neighborNode.caminho.push_back(i); // Adiciona o movimento ao caminho
-                openSet.push(neighborNode); // Adiciona na fila de prioridade
+            if (closedSet.find(proximoCubo) == closedSet.end()) {
+                auto neighborNode = make_shared<NodeAStar>();
+                neighborNode->cubo = proximoCubo;
+                neighborNode->parent = currentNode;
+                neighborNode->move_from_parent = i;
+                neighborNode->g = currentNode->g + 1;
+                neighborNode->h = neighborNode->cubo.calcularHeuristica();
+                openSet.push(neighborNode);
             }
         }
     }
     cout << "Nao foi possivel encontrar uma solucao." << endl;
 }
-
 
 
 // --- Modo Jogador ---
@@ -504,7 +522,6 @@ void jogador(Cubo2x2& cubo) {
     }
 }
 
-// --- Função Principal ---
 int main() {
     #ifdef _WIN32
         // Habilita a codificação UTF-8 no console do Windows
@@ -515,51 +532,110 @@ int main() {
     limparTela();
 
     Cubo2x2 cubo;
+
+    cout << "BEM-VINDO AO SIMULADOR E SOLUCIONADOR DE CUBO MÁGICO 2x2x2!" << endl;
+    cout << "---------------------------------------------------------" << endl;
+    cout << "Deseja jogar??" << endl;
+    cout << "1- Sim" << endl;
+    cout << "2- Nao" << endl;
+    cout << "Escolha uma opcao: ";
+    int jogar;
+    cin >> jogar;
+    if (jogar != 1) {
+        cout << "Saindo..." << endl;
+        return 0;
+    }
     cout << "Cubo inicial (resolvido):" << endl;
     cubo.printCube();
 
-    cout << "\n Deseja embaralhar o cubo?" << endl;
-    cout << "1- Sim" << endl;
-    cout << "2- Nao" << endl;
-    int opcao;
-    cin >> opcao;
-
-    if (opcao == 1) {
-        cubo.embaralhar();
-    } else {
-        limparTela();
-        cout << "\nCubo nao embaralhado." << endl;
-        cubo.printCube();
-    }
-
-    cout << "\n Como deseja interagir com o cubo?" << endl;
-    cout << "1- Resolver manualmente (Jogador)" << endl;
-    cout << "2- Solucionar com IA (BFS)" << endl;
-    cout << "3- Solucionar com IA (DFS)" << endl;
-    cout << "4- Solucionar com IA (A*)" << endl;
+    cout << "\n O que deseja fazer?" << endl;
+    cout << "1- Interagir manualmente (Jogador)" << endl;
+    cout << "2- Embaralhar o cubo" << endl;
     cout << "Escolha uma opcao: ";
-    int escolha;
-    cin >> escolha;
 
-    switch (escolha) {
+    int acao, nivel;
+    cin >> acao;
+
+    switch(acao) {
         case 1:
             jogador(cubo);
-            break;
+            return 0;
         case 2:
-            cout << "\nIniciando BFS..." << endl;
-            resolveComBFS(cubo);
-            break;
-        case 3:
-            cout << "\nIniciando DFS..." << endl;
-            cubo.resolverComDFS();
-            break;
-        case 4:
-            cout << "\nIniciando A*..." << endl;
-            resolveComAStar(cubo);
+            nivel = cubo.embaralhar();
             break;
         default:
-            cout << "Opcao invalida." << endl;
+            limparTela();
+            cout << "\nOpcao invalida." << endl;
+            cubo.printCube();
+    }
+
+    if (nivel == 1 || nivel == 2) {
+        cout << "\n Como deseja resolver o cubo?" << endl;
+        cout << "1- Resolver manualmente (Jogador)" << endl;
+        cout << "2- Solucionar com IA (BFS)" << endl;
+        cout << "3- Solucionar com IA (DFS)" << endl;
+        cout << "4- Solucionar com IA (A*)" << endl;
+        cout << "Escolha uma opcao: ";
+        int escolha;
+        cin >> escolha;
+
+        switch (escolha) {
+            case 1:
+                jogador(cubo);
+                break;
+            case 2:
+                cout << "\nIniciando BFS..." << endl;
+                resolveComBFS(cubo);
+                break;
+            case 3:
+                cout << "\nIniciando DFS..." << endl;
+                cubo.resolverComDFS();
+                break;
+            case 4:
+                cout << "\nIniciando A*..." << endl;
+                resolveComAStar(cubo);
+                break;
+            default:
+                cout << "Opcao invalida." << endl;
+                break;
+        }
+    } else if (nivel == 3) {
+        cout << "\n Como deseja resolver o cubo?" << endl;
+        cout << "1- Resolver manualmente (Jogador)" << endl;
+        cout << "2- Solucionar com IA (A*)" << endl;
+        cout << "Escolha uma opcao: ";
+        int escolha;
+        cin >> escolha;
+
+        switch (escolha) {
+            case 1:
+                jogador(cubo);
+                break;
+            case 2:
+                cout << "\nIniciando A*..." << endl;
+                resolveComAStar(cubo);
+                break;
+            default:
+                cout << "Opcao invalida." << endl;
+                break;
+        }
+    }
+
+    cout << "\n Deseja jogar Novamente? (1- Sim, 2- Nao): ";
+    int jogarNovamente;
+    cin >> jogarNovamente;
+
+    switch(jogarNovamente) {
+        case 1:
+            main();
+            break;
+        case 2:
+            cout << "Saindo..." << endl;
+            break;
+        default:
+            cout << "Opcao invalida. Saindo..." << endl;
             break;
     }
+
     return 0;
 }
