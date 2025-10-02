@@ -1,3 +1,10 @@
+//Projeto Cubo Mágico 2x2x2 com IA para a disciplina de PI: Sistemas Inteligentes e Aprendizado de Máquina
+//Alunos: 
+//Murilo de Souza Freitas (23012056);
+//João Vitor de Athayde Abram (23005120);
+//Joao Pedro Kafer Bachiega (23006014);
+//Matheus Henrique de Oliveira Cesar (23004140).
+
 #include <iostream>
 #include <vector>
 #include <string>
@@ -45,7 +52,7 @@ void limparTela() {
 //facilita a manipulacao do cubo para nao ter que repetir o array<array<int, 2>, 2> o tempo todo
 using Face = array<array<int, 2>, 2>;
 
-//classe cubo 2x2x2
+//classe cubo 2x2x2 (ESTADO DO CUBO)
 class Cubo2x2 {
 private:
     Face U, D, F, B, L, R; //declaro as faces
@@ -70,46 +77,6 @@ private:
             case 4: return "\033[1;32m" + block + "\033[0m"; //verde
             case 5: return "\033[1;31m" + block + "\033[0m"; //vermelho 
             default: return "??";
-        }
-    }
-
-    //um booleano do dfs de maneira recursiva que tenta encontrar uma solução explorando um caminho de movimentos até a profundidade máxima
-    //retorna 'true' se encontrou a solução, 'false' se não encontrou
-    bool dfs(size_t profundidade_max, vector<int>& caminho) {
-        if (this->estaResolvido()) {
-            return true;
-        }
-        if (caminho.size() >= profundidade_max) {
-            return false;
-        }
-
-        for (int i = 1; i <= 12; ++i) {
-            fazerMovimento(i);
-            caminho.push_back(i);
-            if (dfs(profundidade_max, caminho)) {
-                return true;
-            }
-            caminho.pop_back();
-            fazerMovimentoInverso(i);
-        }
-        return false;
-    }
-
-    //faz o movimento inverso do movimento dado utilizado no dfs
-    void fazerMovimentoInverso(int moveId) {
-        switch (moveId) {
-            case 1: moveU_antihor(); break;
-            case 2: moveD_antihor(); break;
-            case 3: moveF_antihor(); break;
-            case 4: moveB_antihor(); break;
-            case 5: moveL_antihor(); break;
-            case 6: moveR_antihor(); break;
-            case 7: moveU(); break;
-            case 8: moveD(); break;
-            case 9: moveF(); break;
-            case 10: moveB(); break;
-            case 11: moveL(); break;
-            case 12: moveR(); break;
         }
     }
 
@@ -282,7 +249,7 @@ public:
         moveR(); moveR(); moveR();
     }
 
-    //verifica se o cubo está resolvido
+    //verifica se o cubo está resolvido (FUNCAO AVALIADORA)
     inline bool estaResolvido() const {
         return (U[0][0] == U[0][1] && U[0][1] == U[1][0] && U[1][0] == U[1][1]) &&
                (D[0][0] == D[0][1] && D[0][1] == D[1][0] && D[1][0] == D[1][1]) &&
@@ -368,39 +335,108 @@ public:
 
         return nivel;
     }
-
-    //resolve o cubo usando DFS com limitação de profundidade iterativa
-    void resolverComDFS() {
-        for (int profundidade_max = 1; profundidade_max <= 14; ++profundidade_max) {
-            limparTela();
-            cout << "Procurando solucao com ate " << profundidade_max << " movimentos..." << endl;
-            vector<int> caminho;
-            Cubo2x2 copia = *this;
-            if (copia.dfs(profundidade_max, caminho)) {   //chama a função `dfs` privada com limites de profundidade crescentes, garantindo que a primeira solução encontrada seja a mais curta
-                cout << "\nSolucao encontrada!" << endl; 
-                cout << "Numero de movimentos: " << caminho.size() << endl;
-                cout << "Caminho: ";
-                for (int moveId : caminho) {
-                    cout << getNomeMovimento(moveId) << " ";
-                }
-                copia.printCube();
-                cout << endl;
-                return;
-            }
-        }
-        cout << "\nNao foi possivel encontrar uma solucao em tempo habil." << endl;
-    }
 };
 
 // --- Estrutura de hash personalizada ---
-
 //fornece a função de hash que o 'unordered_set' usará
 struct CuboHasher {
     inline size_t operator()(const Cubo2x2& cubo) const {
         return cubo.getHashCode();//ele simplesmente chama o método 'getHashCode' do próprio cubo
-
     }
 };
+
+// --- Estruturas para DFS ---
+// Estrutura para armazenar o estado na busca DFS iterativa
+struct EstadoDFS {
+    Cubo2x2 cubo;
+    vector<int> caminho;
+};
+
+//resolve o cubo usando DFS com limitação de profundidade iterativa
+void resolverComDFS(Cubo2x2& cuboInicial) {
+    //marca o tempo de início para medir a duração da busca
+    auto inicio = chrono::high_resolution_clock::now();
+    //contador para o número de estados que exploramos
+    int estadosExplorados = 0;
+
+    //este é o laço do aprofundamento iterativo, que aumenta o limite de profundidade a cada passagem
+    for (int profundidade_max = 1; profundidade_max <= 14; ++profundidade_max) {
+        limparTela();
+        cout << "Procurando solucao com ate " << profundidade_max << " movimentos..." << endl;
+
+        //a pilha é a estrutura central do DFS, guardando os estados a visitar, é um vetor que usamos como pilha (LIFO)
+        vector<EstadoDFS> pilha;
+        
+        //adiciona o estado inicial na pilha para começar a busca
+        pilha.push_back({cuboInicial, {}});
+        
+        //um conjunto para guardar os estados já visitados e evitar loops
+        unordered_set<Cubo2x2, CuboHasher> visitados;
+        visitados.insert(cuboInicial);
+
+
+        //o laço principal da busca, executa enquanto houver estados na pilha
+        while (!pilha.empty()) {
+            //pega o estado do topo da pilha
+            EstadoDFS estadoAtual = std::move(pilha.back());
+            //remove o estado da pilha pois já vamos processá-lo
+            pilha.pop_back();
+            //incrementa o contador de estados explorados
+            estadosExplorados++;
+
+            //verifica se o estado atual é a solução
+            if (estadoAtual.cubo.estaResolvido()) {
+                //se encontramos a solução, calculamos o tempo e mostramos os resultados
+                auto fim = chrono::high_resolution_clock::now();
+                auto duracao = chrono::duration_cast<chrono::milliseconds>(fim - inicio);
+
+                //imprime todas as informações da solução encontrada
+                cout << "\n=== SOLUCAO ENCONTRADA PELO DFS ===" << endl;
+                cout << "Numero de movimentos: " << estadoAtual.caminho.size() << endl;
+                cout << "Estados explorados: " << estadosExplorados << endl;
+                cout << "Tempo de busca: " << duracao.count() << " ms" << endl;
+                cout << "Caminho: ";
+                for (int moveId : estadoAtual.caminho) {
+                    cout << cuboInicial.getNomeMovimento(moveId) << " ";
+                }
+                estadoAtual.cubo.printCube();
+                cout << endl;
+                //encerra a função pois já encontramos a solução
+                return;
+            }
+
+            //se o caminho atual atingiu o limite de profundidade, não continuamos por ele
+            if (estadoAtual.caminho.size() >= static_cast<size_t>(profundidade_max)) {
+                    continue;
+            }
+
+            //gera os próximos estados a partir do atual (FUNCÇÃO SUCESSORA)
+            //itera sobre os 12 movimentos possíveis
+            for (int i = 1; i <= 12; ++i) {
+                //cria uma cópia do cubo para aplicar o movimento
+                Cubo2x2 proximoCubo = estadoAtual.cubo;
+                //realiza o movimento
+                proximoCubo.fazerMovimento(i);
+                
+                //só adiciona o novo estado na pilha se ele ainda não foi visitado
+                if (visitados.find(proximoCubo) == visitados.end()) {
+                    
+                    //marca o novo estado como visitado
+                    visitados.insert(proximoCubo);
+                    
+                    //cria o novo caminho adicionando o movimento atual
+                    vector<int> proximoCaminho = estadoAtual.caminho;
+                    proximoCaminho.push_back(i);
+
+                    //adiciona o novo estado e seu caminho na pilha para ser explorado
+                    pilha.push_back({proximoCubo, std::move(proximoCaminho)});
+                }
+            }
+        }
+    }
+    //se o laço terminar sem encontrar solução
+    cout << "\nNao foi possivel encontrar uma solucao em tempo habil." << endl;
+}
 
 // --- Estruturas de dados para o BFS ---
 
@@ -525,7 +561,7 @@ void resolveComBFS(Cubo2x2& cuboInicial) {
         //pula a exploração se o caminho já for muito longo
         if (estadoAtual.num_movimentos >= MAX_PROFUNDIDADE) continue;
 
-        //gera sucessores
+        //gera sucessores (FUNCAO SUCESSORA)
         //para o estado atual, gera todos os 12 estados possíveis aplicando cada movimento
         for (int i = 0; i < 12; ++i) {
             Cubo2x2 proximoCubo = estadoAtual.cubo; //cria uma cópia para modificar
@@ -632,7 +668,7 @@ void resolveComAStar(Cubo2x2& cuboInicial) {
             cout << endl;            return;
         }
 
-        //gera sucessores:
+        //gera sucessores (FUNCAO SUCESSORA)
         //itera sobre todos os 12 movimentos possíveis para gerar os "vizinhos" do nó atual
         for (int i = 1; i <= 12; ++i) {
             Cubo2x2 proximoCubo = atualNode->cubo;
@@ -663,9 +699,16 @@ void jogador(Cubo2x2& cubo) {
     ll movimento = 0;
     while (movimento != -1) {
         limparTela();
+        
         cout << "---------------JOGADOR---------------\n" << endl;
         cubo.printCube();
-        cout << "\n╔════════════════ MOVIMENTOS ═════════════════╗" << endl;
+        if (cubo.estaResolvido()) {
+            cout << "\nCUBO RESOLVIDO!" << endl;
+        }else{
+            cout << "\nCUBO NAO RESOLVIDO!" << endl;
+        }
+
+        cout << "\n╔════════════════ MOVIMENTOS ══════════════════╗" << endl;
         cout << "║ Horario:    1-U  2-D  3-F  4-B  5-L  6-R     ║" << endl;
         cout << "║ Anti-hor.:  7-U' 8-D' 9-F' 10-B' 11-L' 12-R' ║" << endl;
         cout << "╠══════════════════════════════════════════════╣" << endl;
@@ -676,12 +719,7 @@ void jogador(Cubo2x2& cubo) {
 
         if (movimento >= 1 && movimento <= 12) {
             cubo.fazerMovimento(movimento);
-            if (cubo.estaResolvido()) {
-                limparTela();
-                cubo.printCube();
-                cout << "\n\033[1;32mCUBO RESOLVIDO!\033[0m" << endl;
-                movimento = -1; //sair do loop
-            }
+            
         } else if (movimento == -1) {
             cout << "\nSaindo..." << endl;
         } else {
@@ -730,7 +768,8 @@ int main() {
     switch(acao) {
         case 1:
             jogador(cubo);
-            return 0;
+            goto fim;
+            break;
         case 2:
             nivel = cubo.embaralhar();
             break;
@@ -760,7 +799,7 @@ int main() {
                 break;
             case 3:
                 cout << "\nIniciando DFS..." << endl;
-                cubo.resolverComDFS();
+                resolverComDFS(cubo);
                 break;
             case 4:
                 cout << "\nIniciando A*..." << endl;
@@ -792,6 +831,7 @@ int main() {
         }
     }
 
+    fim:
     cout << "\n Deseja jogar Novamente? (1- Sim, 2- Nao): ";
     int jogarNovamente;
     cin >> jogarNovamente;
