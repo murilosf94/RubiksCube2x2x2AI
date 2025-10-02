@@ -383,7 +383,7 @@ public:
                 for (int moveId : caminho) {
                     cout << getNomeMovimento(moveId) << " ";
                 }
-                printCube();
+                copia.printCube();
                 cout << endl;
                 return;
             }
@@ -518,6 +518,7 @@ void resolveComBFS(Cubo2x2& cuboInicial) {
             cout << "Caminho: " << caminho << endl;
             cout << "Estados explorados: " << estadosExplorados << endl;
             cout << "Tempo de busca: " << duracao.count() << " ms" << endl;
+            estadoAtual.cubo.printCube();
             return;
         }
 
